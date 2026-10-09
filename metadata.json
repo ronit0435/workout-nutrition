@@ -1,0 +1,6 @@
+{
+  "name": "Workout Nutrition - Premium Sports Supplements & Fitness Store",
+  "description": "India's premier authentic sports nutrition store. Shop whey protein, creatine, pre-workout, mass gainers, and wellness supplements with verified batch authenticity and fast Pan-India delivery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
