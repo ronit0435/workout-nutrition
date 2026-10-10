@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { formatCurrency } from '../../utils/formatters';
+import { supabase } from '../../lib/supabase';
 import {
   ShieldCheck,
   Truck,
@@ -8,10 +9,7 @@ import {
   QrCode,
   Building,
   CheckCircle2,
-  Lock,
-  ArrowRight,
-  ArrowLeft,
-  Package,
+  Lock
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -73,8 +71,48 @@ export const CheckoutPage: React.FC = () => {
           : 'Net Banking',
       paymentStatus: paymentMethod === 'cod' ? 'Pending COD' : 'Paid',
     });
+    
+void supabase.functions.invoke('send-enquiry-email', {
+  body: {
+    name: formData.fullName,
+    email: formData.email,
+    message: `
+NEW WEBSITE ORDER
 
-    setConfirmedOrder(order);
+Customer Name: ${formData.fullName}
+Customer Email: ${formData.email}
+Phone: ${formData.phone}
+
+Order ID: ${order?.id ?? 'Not available'}
+
+Products:
+${JSON.stringify(cart, null, 2)}
+
+Subtotal: ${formatCurrency(cartSubtotal)}
+Discount: ${formatCurrency(discountAmount)}
+Shipping: ${formatCurrency(shippingFee)}
+Total Amount: ${formatCurrency(total)}
+
+Payment Method: ${paymentMethod}
+Payment Status: ${
+      paymentMethod === 'cod'
+        ? 'Pending COD'
+        : 'Pending verification'
+    }
+
+Shipping Address:
+${formData.addressLine}
+${formData.city}, ${formData.state}
+PIN Code: ${formData.pinCode}
+    `,
+  },
+}).then(({ error }) => {
+  if (error) {
+    console.error('Order email failed:', error);
+  } else {
+    console.log('Order notification sent successfully.');
+  }
+});    setConfirmedOrder(order);
     setStep(3);
   };
 

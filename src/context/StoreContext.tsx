@@ -21,7 +21,8 @@ export type PageRoute =
   | 'faq'
   | 'shipping-policy'
   | 'return-policy'
-  | 'terms';
+  | 'terms'
+  | 'demo-orders';
 
 export interface RouteParams {
   productId?: string;
@@ -94,6 +95,39 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Navigation State
   const [currentPage, setCurrentPage] = useState<PageRoute>('home');
   const [routeParams, setRouteParams] = useState<RouteParams>({});
+
+  // Keep the browser Back/Forward buttons in sync with this React SPA.
+  useEffect(() => {
+    const initialState = window.history.state;
+
+    // Register the current page as the starting point for app navigation.
+    if (initialState?.appRoute && initialState.page) {
+      setCurrentPage(initialState.page as PageRoute);
+      setRouteParams(initialState.params || {});
+    } else {
+      window.history.replaceState(
+        { appRoute: true, page: 'home', params: {} },
+        '',
+        window.location.href
+      );
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+
+      if (state?.appRoute && state.page) {
+        setCurrentPage(state.page as PageRoute);
+        setRouteParams(state.params || {});
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Cart State (Persisted)
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -213,6 +247,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Navigation Helper
   const navigate = (page: PageRoute, params: RouteParams = {}) => {
+    // Save each in-app navigation so browser Back/Forward restores the page.
+    window.history.pushState(
+      { appRoute: true, page, params },
+      '',
+      window.location.href
+    );
+
     setCurrentPage(page);
     setRouteParams(params);
     window.scrollTo({ top: 0, behavior: 'smooth' });

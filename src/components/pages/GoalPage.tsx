@@ -1,34 +1,86 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { useStore } from '../../context/StoreContext';
 import { GOALS } from '../../data/goals';
 import { PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
-import { Target, CheckCircle2, Lightbulb } from 'lucide-react';
+import { Target, Lightbulb } from 'lucide-react';
+
+const normalizeCategory = (value?: string): string =>
+  (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const GOAL_PRODUCT_CATEGORIES: Record<string, string[]> = {
+  'build-muscle': ['Whey Protein', 'Whey Isolate', 'Creatine'],
+  'gain-weight': ['Mass Gainer'],
+  'lose-fat': ['Fat Burner'],
+  'increase-strength': ['Creatine'],
+  'boost-energy': ['Pre Workout'],
+  recovery: ['BCAA & EAA', 'Glutamine & Aminos', 'Carbohydrates & Recovery'],
+  'health-wellness': ['Multivitamins', 'Fish Oil', 'Health & Wellness'],
+};
 
 export const GoalPage: React.FC = () => {
   const { routeParams, navigate } = useStore();
+
   const slug = routeParams.goalSlug || 'build-muscle';
   const goal = GOALS.find((g) => g.slug === slug) || GOALS[0];
 
-  const goalProducts = PRODUCTS.filter((p) => (p.goals as string[]).includes(goal.id));
+  const allowedCategories = (
+    GOAL_PRODUCT_CATEGORIES[goal.slug] || []
+  ).map(normalizeCategory);
+
+  const goalProducts = PRODUCTS.filter((product) => {
+    const category = normalizeCategory(product.category);
+    const subcategory = normalizeCategory(product.subcategory);
+
+    return (
+      allowedCategories.includes(category) ||
+      allowedCategories.includes(subcategory)
+    );
+  }).sort((a, b) => {
+    const getPriority = (product: (typeof PRODUCTS)[number]) => {
+      const categories = [
+        normalizeCategory(product.category),
+        normalizeCategory(product.subcategory),
+      ];
+
+      const matchedIndexes = categories
+        .map((category) => allowedCategories.indexOf(category))
+        .filter((index) => index !== -1);
+
+      return matchedIndexes.length
+        ? Math.min(...matchedIndexes)
+        : Number.MAX_SAFE_INTEGER;
+    };
+
+    const priorityDifference = getPriority(a) - getPriority(b);
+
+    if (priorityDifference !== 0) return priorityDifference;
+
+    return (b.rating ?? 0) - (a.rating ?? 0);
+  });
 
   return (
     <div className="bg-zinc-50 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-zinc-500 mb-6">
-          <button onClick={() => navigate('home')} className="hover:text-red-600 cursor-pointer">
+          <button
+            onClick={() => navigate('home')}
+            className="hover:text-red-600 cursor-pointer"
+          >
             Home
           </button>
           <span>/</span>
-          <button onClick={() => navigate('shop')} className="hover:text-red-600 cursor-pointer">
+          <button
+            onClick={() => navigate('shop')}
+            className="hover:text-red-600 cursor-pointer"
+          >
             Goals
           </button>
           <span>/</span>
           <span className="text-zinc-900 font-semibold">{goal.title}</span>
         </div>
 
-        {/* Goal Hero Banner */}
         <div className="relative rounded-3xl overflow-hidden bg-zinc-950 text-white p-8 sm:p-12 mb-8 shadow-xl">
           <img
             src={goal.heroImage}
@@ -36,24 +88,27 @@ export const GoalPage: React.FC = () => {
             className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
             referrerPolicy="no-referrer"
           />
+
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-red-400 uppercase tracking-widest mb-2 font-mono bg-red-600/20 px-3 py-1 rounded-full border border-red-500/30">
               <Target className="w-3.5 h-3.5" />
               <span>{goal.subtitle}</span>
             </div>
+
             <h1 className="font-display font-normal text-4xl sm:text-5xl lg:text-6xl text-white uppercase tracking-wide mb-3">
               {goal.title}
             </h1>
+
             <p className="font-body text-sm sm:text-base text-zinc-300 font-normal leading-relaxed mb-6">
               {goal.description}
             </p>
 
-            {/* Nutrition Protocol Tips */}
             <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 sm:p-5 backdrop-blur-md">
               <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider mb-2.5">
                 <Lightbulb className="w-4 h-4" />
                 <span>NUTRITIONIST PROTOCOL TIPS</span>
               </div>
+
               <ul className="space-y-1.5 text-xs text-zinc-300">
                 {goal.tips.map((tip, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -66,24 +121,42 @@ export const GoalPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Products Grid */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <h2 className="font-heading font-black text-lg text-zinc-900 uppercase">
             RECOMMENDED STACK SUPPLEMENTS ({goalProducts.length})
           </h2>
+
           <button
             onClick={() => navigate('shop')}
-            className="text-xs font-bold text-red-600 hover:underline"
+            className="text-xs font-bold text-red-600 hover:underline shrink-0"
           >
             Browse All Products →
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {goalProducts.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        {goalProducts.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {goalProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center">
+            <h3 className="text-lg font-bold text-zinc-900 mb-2">
+              No matching products found
+            </h3>
+            <p className="text-sm text-zinc-500 mb-4">
+              No products currently match the categories configured for this goal.
+              Check the category names in products.ts.
+            </p>
+            <button
+              onClick={() => navigate('shop')}
+              className="bg-red-600 text-white rounded-lg px-5 py-2.5 text-sm font-bold hover:bg-red-700"
+            >
+              Browse All Products
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

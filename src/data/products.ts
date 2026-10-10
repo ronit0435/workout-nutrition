@@ -15,8 +15,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 3420,
     images: [
-      'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=800&q=80',
+      '/products/on-gold-standard.jpg',
+      '/products/Whey-Isolate-2.jpg',
     ],
     description: 'The world’s best-selling whey protein powder delivers 24g of high biological value whey protein per serving. Primarily formulated with Whey Protein Isolate (WPI), micro-filtered for rapid digestion, instant mixing, and lean recovery.',
     benefits: [
@@ -67,8 +67,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 1890,
     images: [
-      'https://images.unsplash.com/photo-1594882645126-14020914d58d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
+      '/products/Creatine.jpg',
+      '/products/Whey-Isolate-2.jpg',
     ],
     description: 'MuscleTech Platinum 100% Creatine delivers a full 3g dose of ultra-pure HPLC-tested micronized creatine monohydrate per scoop. Designed to support intramuscular phosphocreatine replenishment and power output.',
     benefits: [
@@ -116,8 +116,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewCount: 5210,
     images: [
-      'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=800&q=80',
+      '/products/biozyme-whey.jpg',
     ],
     description: 'India’s first clinically tested whey protein customized for South Asian digestive enzymes. Biozyme Whey features an Enhanced Absorption Formula (EAF) clinically tested to support higher protein absorption and minimize stomach discomfort.',
     benefits: [
@@ -167,8 +166,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 2150,
     images: [
-      'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=800&q=80',
+      '/products/dymatize-whey-protein.jpg',
+      '/products/Whey-Isolate-2.jpg',
     ],
     description: 'Dymatize ISO100 delivers 25g of hydrolyzed 100% whey protein isolate and 5.5g BCAAs per scoop with less than 1g sugar and zero fat. Engineered for rapid amino absorption and contest-prep purity.',
     benefits: [
@@ -218,7 +217,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 4120,
     images: [
-      'https://images.unsplash.com/photo-1594882645126-14020914d58d?auto=format&fit=crop&w=800&q=80',
+      '/products/Cellucor-pre-workout.jpg',
       'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=800&q=80',
     ],
     description: 'Fuel intense training sessions with America’s top-selling pre-workout. C4 Original combines CarnoSyn Beta-Alanine, Creatine Nitrate, and caffeine for training drive, muscular endurance, and mental focus.',
@@ -267,8 +266,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 3120,
     images: [
-      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80',
+      '/products/Labrada-Muscle-Mass-Gainer-Powder.jpg',
+    
     ],
     description: 'Engineered by Lee Labrada for hardgainers who struggle to put on weight. Packs 1244 rich calories, 52g high-grade multi-phase protein, and 250g energy-dense carbs per serving with zero dextrose or fructose spikes.',
     benefits: [
@@ -318,8 +317,8 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 2840,
     images: [
-      'https://images.unsplash.com/photo-1594882645126-14020914d58d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
+    '/products/Wellcore-Pure-Micronised-Creatine-Monohydrate-Powder.jpg',
+    '/products/Whey-Isolate-2.jpg',
     ],
     description: 'Wellcore Micronized Creatine features Mesh 200 ultra-fine particle milling for lightning-fast solubility and zero grittiness. Supports cellular ATP power and muscular phosphocreatine storage.',
     benefits: [
@@ -357,7 +356,7 @@ export const PRODUCTS: Product[] = [
     id: 'on-fish-oil-omega-3',
     slug: 'on-fish-oil-omega-3',
     brand: 'Optimum Nutrition',
-    name: 'Enteric-Coated Deep Sea Fish Oil Softgels',
+    name: 'MuscleTech Platinum 100% Fish Oil',
     category: 'Fish Oil',
     subcategory: 'Enteric Coated Softgels',
     price: 899,
@@ -366,8 +365,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 1980,
     images: [
-      'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80',
+      '/products/on-omega-3-fish-oil.jpg',
     ],
     description: 'Optimum Nutrition Fish Oil softgels are enteric coated to withstand stomach acids and digest directly in the intestines, helping eliminate fishy burps. Supplies essential EPA and DHA omega-3 fatty acids.',
     benefits: [
@@ -415,8 +413,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewCount: 4290,
     images: [
-      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=800&q=80',
+      '/products/mb-vite.jpg',
     ],
     description: 'Formulated with 51 active ingredients and 6 specialized botanical blends including Amino Acid blend, Metabolism blend, and Digestive Enzymes to replenish micronutrients lost during strenuous training.',
     benefits: [
@@ -464,8 +461,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewCount: 1480,
     images: [
-      'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
+      '/products/bpi-bcaa.jpg',
     ],
     description: 'First intra-workout to bond BCAAs into oligopeptides for faster cellular transit. Combined with CLA and Agmatine Sulfate to support muscle preservation and hydration during grueling sessions.',
     benefits: [
@@ -512,7 +508,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 760,
     images: [
-      'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80',
+       '/products/black-viper.jpg',
       'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80',
     ],
     description: 'Black Viper is a high-potency thermogenic formula designed to support caloric burn, alertness, and metabolic drive during cutting blocks.',
@@ -559,8 +555,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewCount: 1410,
     images: [
-      'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=800&q=80',
+      '/products/avvatar-whey-protein.jpg',
     ],
     description: 'Made from fresh cow milk sourced directly from Parag farms within 24 hours of milking. Cold-processed microfiltered native whey delivers 27g protein and 6g naturally occurring BCAAs.',
     benefits: [
