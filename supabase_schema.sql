@@ -26,13 +26,23 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Enable RLS for profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+-- Helper function with SECURITY DEFINER to avoid infinite recursion in RLS policies
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Profiles Policies
 DROP POLICY IF EXISTS "Public profiles are viewable by owner and admin" ON public.profiles;
 CREATE POLICY "Public profiles are viewable by owner and admin"
   ON public.profiles FOR SELECT
   USING (
-    auth.uid() = id OR 
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+    auth.uid() = id OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
@@ -121,34 +131,19 @@ CREATE POLICY "Anyone can view products"
 DROP POLICY IF EXISTS "Admins can insert products" ON public.products;
 CREATE POLICY "Admins can insert products"
   ON public.products FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+  WITH CHECK (public.is_admin());
 
 -- C. Only users with role = 'admin' can update products
 DROP POLICY IF EXISTS "Admins can update products" ON public.products;
 CREATE POLICY "Admins can update products"
   ON public.products FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin());
 
 -- D. Only users with role = 'admin' can delete products
 DROP POLICY IF EXISTS "Admins can delete products" ON public.products;
 CREATE POLICY "Admins can delete products"
   ON public.products FOR DELETE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin());
 
 
 -- 4. STORAGE BUCKET FOR PRODUCT IMAGES (Optional if using Supabase Storage)
