@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, CartItem, Order } from '../types';
-import { PRODUCTS } from '../data/products';
+import { PRODUCTS as STATIC_PRODUCTS } from '../data/products';
+import { productsService } from '../lib/products.service';
 
 export type PageRoute =
   | 'home'
@@ -22,7 +23,8 @@ export type PageRoute =
   | 'shipping-policy'
   | 'return-policy'
   | 'terms'
-  | 'demo-orders';
+  | 'demo-orders'
+  | 'admin';
 
 export interface RouteParams {
   productId?: string;
@@ -42,6 +44,11 @@ export interface ToastMessage {
 }
 
 interface StoreContextType {
+  // Products
+  products: Product[];
+  refreshProducts: () => Promise<void>;
+  isLoadingProducts: boolean;
+
   // Navigation
   currentPage: PageRoute;
   routeParams: RouteParams;
@@ -92,6 +99,21 @@ const FREE_SHIPPING_THRESHOLD = 999;
 const STANDARD_SHIPPING_FEE = 99;
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Live Products State
+  const [products, setProducts] = useState<Product[]>(STATIC_PRODUCTS);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+
+  const loadProducts = async () => {
+    setIsLoadingProducts(true);
+    const { products: fetched } = await productsService.getProducts();
+    setProducts(fetched);
+    setIsLoadingProducts(false);
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
   // Navigation State
   const [currentPage, setCurrentPage] = useState<PageRoute>('home');
   const [routeParams, setRouteParams] = useState<RouteParams>({});
@@ -162,14 +184,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           items: [
             {
               id: 'on-gold-standard-100-whey-Double Rich Chocolate-5 lbs (2.27 kg)',
-              product: PRODUCTS[0],
+              product: STATIC_PRODUCTS[0],
               quantity: 1,
               selectedFlavour: 'Double Rich Chocolate',
               selectedSize: '5 lbs (2.27 kg)',
             },
             {
               id: 'muscletech-platinum-creatine-Unflavoured-250g (83 Servings)',
-              product: PRODUCTS[1],
+              product: STATIC_PRODUCTS[1],
               quantity: 1,
               selectedFlavour: 'Unflavoured',
               selectedSize: '250g (83 Servings)',
@@ -383,6 +405,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <StoreContext.Provider
       value={{
+        products,
+        refreshProducts: loadProducts,
+        isLoadingProducts,
         currentPage,
         routeParams,
         navigate,

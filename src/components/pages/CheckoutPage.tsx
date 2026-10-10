@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../utils/formatters';
 import { supabase } from '../../lib/supabase';
 import {
@@ -9,7 +10,10 @@ import {
   QrCode,
   Building,
   CheckCircle2,
-  Lock
+  Lock,
+  UserCheck,
+  LogIn,
+  AlertCircle,
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -23,21 +27,38 @@ export const CheckoutPage: React.FC = () => {
     navigate,
   } = useStore();
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const { user, profile, openAuthModal } = useAuth();
+
   const [confirmedOrder, setConfirmedOrder] = useState<any>(null);
 
   // Address form fields
   const [formData, setFormData] = useState({
-    fullName: 'Rohan Sharma',
-    phone: '+91 98765 43210',
-    email: 'rohan.sharma@gmail.com',
-    addressLine: 'House #42, Green Park Avenue',
-    city: 'New Delhi',
-    state: 'Delhi',
-    pinCode: '110016',
+    fullName: '',
+    phone: '',
+    email: '',
+    addressLine: '',
+    city: '',
+    state: '',
+    pinCode: '',
   });
 
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod' | 'netbanking'>('upi');
+
+  // Auto-fill from authenticated user profile
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email || prev.email,
+        fullName: profile?.fullName || prev.fullName || '',
+        phone: profile?.phone || prev.phone || '',
+        addressLine: profile?.addressLine || prev.addressLine || '',
+        city: profile?.city || prev.city || '',
+        state: profile?.state || prev.state || '',
+        pinCode: profile?.pinCode || prev.pinCode || '',
+      }));
+    }
+  }, [user, profile]);
 
   const total = cartSubtotal - discountAmount + shippingFee;
 
@@ -47,6 +68,12 @@ export const CheckoutPage: React.FC = () => {
 
   const handleCompleteOrder = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      openAuthModal('login', 'Please sign in or create an account to complete your purchase');
+      return;
+    }
+
     const order = placeOrder({
       items: cart,
       subtotal: cartSubtotal,
@@ -71,18 +98,17 @@ export const CheckoutPage: React.FC = () => {
           : 'Net Banking',
       paymentStatus: paymentMethod === 'cod' ? 'Pending COD' : 'Paid',
     });
-    
-void supabase.functions.invoke('send-enquiry-email', {
-  body: {
-    name: formData.fullName,
-    email: formData.email,
-    message: `
-NEW WEBSITE ORDER
 
+    // Notify backend
+    void supabase.functions.invoke('send-enquiry-email', {
+      body: {
+        name: formData.fullName,
+        email: formData.email,
+        message: `
+NEW WEBSITE ORDER
 Customer Name: ${formData.fullName}
 Customer Email: ${formData.email}
 Phone: ${formData.phone}
-
 Order ID: ${order?.id ?? 'Not available'}
 
 Products:
@@ -94,26 +120,19 @@ Shipping: ${formatCurrency(shippingFee)}
 Total Amount: ${formatCurrency(total)}
 
 Payment Method: ${paymentMethod}
-Payment Status: ${
-      paymentMethod === 'cod'
-        ? 'Pending COD'
-        : 'Pending verification'
-    }
+Payment Status: ${paymentMethod === 'cod' ? 'Pending COD' : 'Pending verification'}
 
 Shipping Address:
 ${formData.addressLine}
 ${formData.city}, ${formData.state}
 PIN Code: ${formData.pinCode}
-    `,
-  },
-}).then(({ error }) => {
-  if (error) {
-    console.error('Order email failed:', error);
-  } else {
-    console.log('Order notification sent successfully.');
-  }
-});    setConfirmedOrder(order);
-    setStep(3);
+        `,
+      },
+    }).catch((err) => {
+      console.warn('Order email notification error:', err);
+    });
+
+    setConfirmedOrder(order);
   };
 
   // If user lands directly with empty cart and not on confirmed step
@@ -222,6 +241,67 @@ PIN Code: ${formData.pinCode}
     );
   }
 
+  // REQUIRE LOGIN TO PURCHASE GATE
+  if (!user) {
+    return (
+      <div className="bg-zinc-50 min-h-screen py-16">
+        <div className="max-w-lg mx-auto bg-white border border-zinc-200/80 rounded-3xl p-8 sm:p-10 text-center shadow-lg">
+          <div className="w-16 h-16 rounded-3xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8" />
+          </div>
+
+          <div className="inline-block px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full uppercase tracking-wider mb-2">
+            Authentication Required
+          </div>
+
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 font-display">
+            Sign In to Complete Purchase
+          </h2>
+
+          <p className="text-xs sm:text-sm text-zinc-600 mt-2 mb-6 leading-relaxed">
+            You can freely explore products, but placing orders requires a verified account for batch authenticity tracking, order invoicing, and secure shipment notifications.
+          </p>
+
+          <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200/80 mb-6 text-left">
+            <div className="flex justify-between items-center text-xs font-bold text-zinc-700 mb-1">
+              <span>Items in Cart:</span>
+              <span>{cart.length} Products</span>
+            </div>
+            <div className="flex justify-between items-center text-sm font-black text-red-600 font-mono">
+              <span>Cart Subtotal:</span>
+              <span>{formatCurrency(total)}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => openAuthModal('login', 'Sign in to complete your supplement order')}
+              className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-red-600/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Sign In to Continue</span>
+            </button>
+
+            <button
+              onClick={() => openAuthModal('register', 'Create an account to complete your supplement order')}
+              className="w-full py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Create New Account</span>
+            </button>
+
+            <button
+              onClick={() => navigate('shop')}
+              className="text-xs text-zinc-400 hover:text-zinc-600 pt-2"
+            >
+              ← Continue browsing without signing in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-zinc-50 min-h-screen py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -253,6 +333,7 @@ PIN Code: ${formData.pinCode}
                       required
                       value={formData.fullName}
                       onChange={handleInputChange}
+                      placeholder="e.g. Rohan Sharma"
                       className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 outline-none focus:border-red-600 focus:bg-white"
                     />
                   </div>
@@ -265,6 +346,7 @@ PIN Code: ${formData.pinCode}
                       required
                       value={formData.phone}
                       onChange={handleInputChange}
+                      placeholder="+91 98765 43210"
                       className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 outline-none focus:border-red-600 focus:bg-white"
                     />
                   </div>
@@ -277,6 +359,7 @@ PIN Code: ${formData.pinCode}
                       required
                       value={formData.email}
                       onChange={handleInputChange}
+                      placeholder="name@example.com"
                       className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 outline-none focus:border-red-600 focus:bg-white"
                     />
                   </div>
@@ -289,6 +372,7 @@ PIN Code: ${formData.pinCode}
                       required
                       value={formData.addressLine}
                       onChange={handleInputChange}
+                      placeholder="House/Flat number, building, street..."
                       className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 outline-none focus:border-red-600 focus:bg-white"
                     />
                   </div>
@@ -301,6 +385,7 @@ PIN Code: ${formData.pinCode}
                       required
                       value={formData.city}
                       onChange={handleInputChange}
+                      placeholder="e.g. New Delhi"
                       className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 outline-none focus:border-red-600 focus:bg-white"
                     />
                   </div>
@@ -313,6 +398,7 @@ PIN Code: ${formData.pinCode}
                       required
                       value={formData.pinCode}
                       onChange={handleInputChange}
+                      placeholder="e.g. 110016"
                       className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 outline-none focus:border-red-600 focus:bg-white"
                     />
                   </div>

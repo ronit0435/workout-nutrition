@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { CategoriesMegaMenu } from './CategoriesMegaMenu';
 import { GOALS } from '../../data/goals';
 
@@ -21,10 +21,12 @@ import {
   MessageCircle,
   HelpCircle,
   ArrowRight,
+  ShieldAlert,
+  LogOut,
+  LogIn,
 } from 'lucide-react';
 
 const LOGO_PATH = '/products/logo.png';
-
 
 export const Header: React.FC = () => {
   const {
@@ -35,6 +37,8 @@ export const Header: React.FC = () => {
     setSearchOpen,
     wishlist,
   } = useStore();
+
+  const { user, profile, isAdmin, openAuthModal, signOut } = useAuth();
 
   const [visible, setVisible] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -166,12 +170,12 @@ export const Header: React.FC = () => {
     {
       slug: 'whey-protein',
       label: 'Whey Protein',
-      desc: 'Fast absorption',
+      desc: 'Fast-absorbing protein',
     },
     {
       slug: 'whey-isolate',
       label: 'Whey Isolate',
-      desc: 'High-purity protein',
+      desc: 'High purity isolate',
     },
     {
       slug: 'creatine',
@@ -181,22 +185,17 @@ export const Header: React.FC = () => {
     {
       slug: 'pre-workout',
       label: 'Pre-Workout',
-      desc: 'Energy and focus',
+      desc: 'Energy and pump',
     },
     {
       slug: 'mass-gainer',
       label: 'Mass Gainer',
-      desc: 'Weight gain support',
-    },
-    {
-      slug: 'bcaa-eaa',
-      label: 'BCAA & EAA',
-      desc: 'Workout amino acids',
+      desc: 'High-calorie blends',
     },
     {
       slug: 'fish-oil',
-      label: 'Fish Oil & Omega',
-      desc: 'Daily wellness',
+      label: 'Fish Oil',
+      desc: 'Omega-3 support',
     },
     {
       slug: 'multivitamins',
@@ -328,18 +327,44 @@ export const Header: React.FC = () => {
 
             {/* DESKTOP ACTION ICONS */}
             <div className="flex items-center gap-1.5 shrink-0">
+              {isAdmin && (
+                <button
+                  onClick={() => handleNavClick('admin')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border transition-all ${
+                    currentPage === 'admin'
+                      ? 'bg-red-600 text-white border-red-600 shadow-md shadow-red-600/20'
+                      : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                  }`}
+                  title="Admin Inventory Dashboard"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                  Admin
+                </button>
+              )}
+
               <button
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search supplements"
-                className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-red-600 flex items-center justify-center transition-all"
+                className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-red-600 flex items-center justify-center transition-all cursor-pointer"
               >
                 <Search className="w-4 h-4" />
               </button>
 
               <button
-                onClick={() => handleNavClick('account')}
+                onClick={() => {
+                  if (user) {
+                    handleNavClick('account');
+                  } else {
+                    openAuthModal('login');
+                  }
+                }}
                 aria-label="My account"
-                className="w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-red-600 flex items-center justify-center transition-all"
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  user
+                    ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                    : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-red-600'
+                }`}
+                title={user ? `Signed in as ${user.email}` : 'Sign in to account'}
               >
                 <User className="w-4 h-4" />
               </button>
@@ -347,7 +372,7 @@ export const Header: React.FC = () => {
               <button
                 onClick={() => handleNavClick('wishlist')}
                 aria-label="My wishlist"
-                className="relative w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-red-600 flex items-center justify-center transition-all"
+                className="relative w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-red-600 flex items-center justify-center transition-all cursor-pointer"
               >
                 <Heart className="w-4 h-4" />
 
@@ -361,7 +386,7 @@ export const Header: React.FC = () => {
               <button
                 onClick={() => setCartOpen(true)}
                 aria-label="Shopping cart"
-                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white py-2 px-3.5 rounded-full font-bold transition-all shadow-md shadow-red-600/20 active:scale-95 ml-1"
+                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white py-2 px-3.5 rounded-full font-bold transition-all shadow-md shadow-red-600/20 active:scale-95 ml-1 cursor-pointer"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
                 <span className="text-xs font-mono">{cartCount}</span>
@@ -393,65 +418,131 @@ export const Header: React.FC = () => {
                 <Menu className="w-5 h-5" />
               </button>
 
-              <LogoButton mobile />
+              <LogoButton mobile={true} />
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isAdmin && (
+                <button
+                  onClick={() => handleNavClick('admin')}
+                  className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider"
+                >
+                  Admin
+                </button>
+              )}
+
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-700"
+                aria-label="Search"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => {
+                  if (user) {
+                    handleNavClick('account');
+                  } else {
+                    openAuthModal('login');
+                  }
+                }}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                  user ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-700'
+                }`}
+                aria-label="Account"
+              >
+                <User className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setCartOpen(true)}
+                className="flex items-center gap-1 bg-red-600 text-white py-1.5 px-3 rounded-xl font-bold"
+                aria-label="Cart"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span className="text-xs font-mono">{cartCount}</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* MOBILE NAVIGATION DRAWER */}
+      {/* MOBILE DRAWER */}
       {mobileMenuOpen &&
-        typeof document !== 'undefined' &&
         createPortal(
-          <div className="md:hidden fixed inset-0 z-[100] overflow-hidden">
-            <button
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+          <div className="fixed inset-0 z-50 flex md:hidden">
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
               onClick={() => setMobileMenuOpen(false)}
-              aria-label="Close navigation backdrop"
             />
 
-            <div className="fixed inset-y-0 left-0 w-[88vw] max-w-[360px] bg-white shadow-2xl flex flex-col z-[101] border-r border-zinc-200">
+            <div className="relative w-[85%] max-w-[340px] bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-300">
               {/* DRAWER HEADER */}
-              <div className="p-3.5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
-                <LogoButton mobile />
+              <div className="p-4 border-b border-zinc-200 flex items-center justify-between shrink-0 bg-zinc-50">
+                <LogoButton mobile={true} />
 
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-9 h-9 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-700 flex items-center justify-center"
-                  aria-label="Close menu"
+                  className="w-8 h-8 rounded-lg bg-zinc-200/70 hover:bg-zinc-200 flex items-center justify-center text-zinc-600"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* DRAWER TABS */}
-              <div className="px-3 pt-2.5 pb-1 border-b border-zinc-100">
-                <div className="grid grid-cols-4 gap-1 p-1 bg-zinc-100 rounded-xl">
-                  {(
-                    ['pages', 'categories', 'brands', 'goals'] as const
-                  ).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setMobileActiveTab(tab)}
-                      className={`py-2 text-[9px] sm:text-[10px] font-bold uppercase rounded-lg transition-all ${
-                        mobileActiveTab === tab
-                          ? 'bg-red-600 text-white'
-                          : 'text-zinc-600'
-                      }`}
-                    >
-                      {tab === 'categories' ? 'Category' : tab}
-                    </button>
-                  ))}
-                </div>
+              <div className="grid grid-cols-4 p-2 bg-zinc-100 border-b border-zinc-200 text-center gap-1 shrink-0">
+                {(
+                  [
+                    { id: 'pages', label: 'Explore' },
+                    { id: 'categories', label: 'Categories' },
+                    { id: 'brands', label: 'Brands' },
+                    { id: 'goals', label: 'Goals' },
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setMobileActiveTab(tab.id)}
+                    className={`py-2 px-1 text-[11px] font-bold rounded-lg transition-all ${
+                      mobileActiveTab === tab.id
+                        ? 'bg-white text-red-600 shadow-sm'
+                        : 'text-zinc-600 hover:text-zinc-950'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
 
-              {/* DRAWER BODY */}
-              <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3 overscroll-contain">
+              {/* DRAWER CONTENT */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {mobileActiveTab === 'pages' && (
                   <div className="space-y-2">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 px-1 pb-1">
                       Store services and pages
                     </p>
+
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleNavClick('admin')}
+                        className="w-full flex items-center justify-between p-3 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-left mb-2"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-600 text-white">
+                            <ShieldAlert className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold uppercase text-red-700">
+                              Admin Product Management
+                            </div>
+                            <div className="text-[10px] text-red-500">
+                              Live database CRUD operations
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-red-400" />
+                      </button>
+                    )}
 
                     {[
                       {
@@ -480,14 +571,21 @@ export const Header: React.FC = () => {
                       },
                       {
                         page: 'account',
-                        title: 'My Account',
-                        desc: 'Profile and order history',
+                        title: user ? 'My Account' : 'Sign In / Register',
+                        desc: user ? (user.email || 'View profile') : 'Login to save orders',
                         icon: <User className="w-4 h-4" />,
                       },
                     ].map((item) => (
                       <button
                         key={item.page}
-                        onClick={() => handleNavClick(item.page)}
+                        onClick={() => {
+                          if (item.page === 'account' && !user) {
+                            setMobileMenuOpen(false);
+                            openAuthModal('login');
+                          } else {
+                            handleNavClick(item.page);
+                          }
+                        }}
                         className="w-full flex items-center justify-between p-3 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-left"
                       >
                         <div className="flex items-center gap-2.5">
@@ -506,6 +604,19 @@ export const Header: React.FC = () => {
                         <ChevronRight className="w-4 h-4 text-zinc-400" />
                       </button>
                     ))}
+
+                    {user && (
+                      <button
+                        onClick={async () => {
+                          await signOut();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 p-3 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-600 text-left"
+                      >
+                        <LogOut className="w-4 h-4 text-red-600" />
+                        <span>Sign Out ({user.email})</span>
+                      </button>
+                    )}
 
                     <div className="pt-3 border-t border-zinc-200">
                       <p className="text-[10px] font-bold uppercase text-zinc-400 mb-2">

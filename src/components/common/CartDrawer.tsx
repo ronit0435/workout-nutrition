@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../utils/formatters';
-import { X, Trash2, Plus, Minus, ArrowRight, ShieldCheck, Truck, Sparkles, Tag } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ArrowRight, ShieldCheck, Truck, Sparkles, Tag, Lock } from 'lucide-react';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -20,6 +21,8 @@ export const CartDrawer: React.FC = () => {
     navigate,
   } = useStore();
 
+  const { user, openAuthModal } = useAuth();
+
   const [couponInput, setCouponInput] = useState('');
 
   if (!cartOpen) return null;
@@ -29,6 +32,10 @@ export const CartDrawer: React.FC = () => {
   const progressPercent = Math.min(100, Math.round((cartSubtotal / freeShippingThreshold) * 100));
 
   const handleCheckout = () => {
+    if (!user) {
+      openAuthModal('login', 'Please sign in or create an account to proceed to checkout');
+      return;
+    }
     setCartOpen(false);
     navigate('checkout');
   };
@@ -267,6 +274,7 @@ export const CartDrawer: React.FC = () => {
                 onClick={handleCheckout}
                 className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 px-4 rounded-xl transition-colors uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-red-600/20 cursor-pointer"
               >
+                {!user && <Lock className="w-3.5 h-3.5" />}
                 <span>Checkout</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>

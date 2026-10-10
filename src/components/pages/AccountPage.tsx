@@ -1,11 +1,67 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../utils/formatters';
-import { User, Package, MapPin, Heart, ShieldCheck, LogOut, Clock, ArrowRight } from 'lucide-react';
+import {
+  User,
+  Package,
+  MapPin,
+  Heart,
+  ShieldCheck,
+  LogOut,
+  Clock,
+  ArrowRight,
+  ShieldAlert,
+  LogIn,
+} from 'lucide-react';
 
 export const AccountPage: React.FC = () => {
   const { orders, wishlist, navigate } = useStore();
+  const { user, profile, isAdmin, openAuthModal, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'addresses'>('orders');
+
+  // If not logged in, prompt user to sign in
+  if (!user) {
+    return (
+      <div className="bg-zinc-50 min-h-[70vh] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-zinc-200/80 shadow-lg text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 font-display">
+            Account Sign In
+          </h2>
+          <p className="text-xs sm:text-sm text-zinc-500 mt-2 mb-6">
+            Sign in to view your orders, live shipments, saved addresses, and account details.
+          </p>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => openAuthModal('login')}
+              className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-red-600/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Sign In</span>
+            </button>
+            <button
+              onClick={() => openAuthModal('register')}
+              className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+            >
+              Create New Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = profile?.fullName || user.email?.split('@')[0] || 'Member';
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
   return (
     <div className="bg-zinc-50 min-h-screen py-10">
@@ -23,24 +79,39 @@ export const AccountPage: React.FC = () => {
         <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 sm:p-8 mb-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-zinc-950 text-white flex items-center justify-center font-heading font-black text-2xl border-2 border-red-600">
-              AM
+              {initials}
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="font-display font-normal text-2xl sm:text-3xl text-zinc-950 uppercase tracking-wide">
-                  Arjun Mehra
+                  {displayName}
                 </h1>
-                <span className="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
-                  Verified Member
-                </span>
+                {isAdmin ? (
+                  <span className="text-[10px] font-mono font-bold bg-red-50 text-red-700 px-2.5 py-0.5 rounded-full border border-red-200 uppercase">
+                    Admin Staff
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                    Verified Member
+                  </span>
+                )}
               </div>
               <p className="text-xs text-zinc-500 mt-0.5">
-                arjun.mehra@gmail.com · +91 98765 43210
+                {user.email} {profile?.phone && `· ${profile.phone}`}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            {isAdmin && (
+              <button
+                onClick={() => navigate('admin')}
+                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-md shadow-red-600/20"
+              >
+                <ShieldAlert className="w-4 h-4" />
+                <span>Admin Inventory Portal</span>
+              </button>
+            )}
             <button
               onClick={() => navigate('track-order')}
               className="bg-zinc-900 hover:bg-black text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -111,6 +182,16 @@ export const AccountPage: React.FC = () => {
                 </div>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
+
+              <div className="pt-2 border-t border-zinc-100">
+                <button
+                  onClick={() => signOut()}
+                  className="w-full text-left p-3 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -146,7 +227,7 @@ export const AccountPage: React.FC = () => {
                           </span>
                           <button
                             onClick={() => navigate('track-order', { orderId: order.id })}
-                            className="text-xs font-bold text-red-600 hover:underline"
+                            className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
                           >
                             Track Shipment →
                           </button>
@@ -199,26 +280,29 @@ export const AccountPage: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="text-zinc-500 block mb-1">First Name</label>
+                    <label className="text-zinc-500 block mb-1">Full Name</label>
                     <input
                       type="text"
-                      defaultValue="Arjun"
+                      readOnly
+                      value={displayName}
                       className="w-full bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl font-medium"
                     />
                   </div>
                   <div>
-                    <label className="text-zinc-500 block mb-1">Last Name</label>
+                    <label className="text-zinc-500 block mb-1">Account Role</label>
                     <input
                       type="text"
-                      defaultValue="Mehra"
-                      className="w-full bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl font-medium"
+                      readOnly
+                      value={profile?.role?.toUpperCase() || 'CUSTOMER'}
+                      className="w-full bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl font-medium font-mono"
                     />
                   </div>
                   <div>
                     <label className="text-zinc-500 block mb-1">Primary Email</label>
                     <input
                       type="email"
-                      defaultValue="arjun.mehra@gmail.com"
+                      readOnly
+                      value={user.email || ''}
                       className="w-full bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl font-medium"
                     />
                   </div>
@@ -226,7 +310,8 @@ export const AccountPage: React.FC = () => {
                     <label className="text-zinc-500 block mb-1">Mobile Number</label>
                     <input
                       type="tel"
-                      defaultValue="+91 98765 43210"
+                      readOnly
+                      value={profile?.phone || 'Not provided'}
                       className="w-full bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl font-medium"
                     />
                   </div>
@@ -245,9 +330,9 @@ export const AccountPage: React.FC = () => {
                     <strong className="text-zinc-900 font-bold">Primary Residence (Default)</strong>
                     <span className="text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded">Home</span>
                   </div>
-                  <p className="text-zinc-600">Arjun Mehra · +91 98765 43210</p>
-                  <p className="text-zinc-600">Flat 402, Skyline Residency, Bandra West</p>
-                  <p className="text-zinc-600">Mumbai, Maharashtra – 400050</p>
+                  <p className="text-zinc-600">{displayName} · {profile?.phone || '+91 98765 43210'}</p>
+                  <p className="text-zinc-600">{profile?.addressLine || 'Flat 402, Skyline Residency, Bandra West'}</p>
+                  <p className="text-zinc-600">{profile?.city || 'Mumbai'}, {profile?.state || 'Maharashtra'} – {profile?.pinCode || '400050'}</p>
                 </div>
               </div>
             )}

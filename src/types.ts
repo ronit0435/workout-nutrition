@@ -59,7 +59,6 @@ export interface Product {
   nutritionFacts: NutritionFact[];
   howToUse: string;
   flavourNotes?: string;
-  // Fitness guidance fields
   whoIsItFor?: string[];
   whenToUse?: string;
   goalSupported?: string;
@@ -133,4 +132,17 @@ export interface Article {
   content: string[];
   keyTakeaways: string[];
   relatedCategorySlug?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  phone: string;
+  role: 'customer' | 'admin';
+  addressLine?: string;
+  city?: string;
+  state?: string;
+  pinCode?: string;
+  createdAt?: string;
 }

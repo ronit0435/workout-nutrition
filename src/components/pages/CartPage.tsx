@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../utils/formatters';
-import { Trash2, Plus, Minus, ArrowRight, ShieldCheck, Truck, ShoppingBag, Tag, Sparkles } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, ShieldCheck, Truck, ShoppingBag, Tag, Sparkles, Lock } from 'lucide-react';
 
 export const CartPage: React.FC = () => {
   const {
@@ -18,6 +19,8 @@ export const CartPage: React.FC = () => {
     navigate,
   } = useStore();
 
+  const { user, openAuthModal } = useAuth();
+
   const [couponInput, setCouponInput] = useState('');
 
   const total = cartSubtotal - discountAmount + shippingFee;
@@ -30,6 +33,14 @@ export const CartPage: React.FC = () => {
       applyCoupon(couponInput);
       setCouponInput('');
     }
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!user) {
+      openAuthModal('login', 'Please sign in or create an account to proceed to checkout');
+      return;
+    }
+    navigate('checkout');
   };
 
   return (
@@ -223,9 +234,10 @@ export const CartPage: React.FC = () => {
 
                 {/* Checkout CTA */}
                 <button
-                  onClick={() => navigate('checkout')}
+                  onClick={handleProceedToCheckout}
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-600/25 transition-all cursor-pointer"
                 >
+                  {!user && <Lock className="w-4 h-4" />}
                   <span>PROCEED TO CHECKOUT</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>

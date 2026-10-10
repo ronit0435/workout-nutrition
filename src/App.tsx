@@ -1,4 +1,3 @@
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -6,6 +5,7 @@
 
 import React from 'react';
 import { StoreProvider, useStore } from './context/StoreContext';
+import { AuthProvider } from './context/AuthContext';
 import DemoOrdersButton from './components/DemoOrdersButton';
 import { Header } from './components/common/Header';
 import { MobileBottomBar } from './components/common/MobileBottomBar';
@@ -17,6 +17,7 @@ import { FloatingWhatsApp } from './components/common/FloatingWhatsApp';
 import { BackToTop } from './components/common/BackToTop';
 import { ToastNotification } from './components/common/ToastNotification';
 import { RecentBuyerPopup } from './components/common/RecentBuyerPopup';
+import { AuthModal } from './components/auth/AuthModal';
 
 // Pages
 import { HomePage } from './components/pages/HomePage';
@@ -31,6 +32,7 @@ import { CheckoutPage } from './components/pages/CheckoutPage';
 import { WishlistPage } from './components/pages/WishlistPage';
 import { AccountPage } from './components/pages/AccountPage';
 import { OrderTrackingPage } from './components/pages/OrderTrackingPage';
+import { AdminProductsPage } from './components/admin/AdminProductsPage';
 
 import {
   AboutPage,
@@ -82,6 +84,9 @@ const MainRouter: React.FC = () => {
 
       case 'track-order':
         return <OrderTrackingPage />;
+
+      case 'admin':
+        return <AdminProductsPage />;
 
       case 'about':
         return <AboutPage />;
@@ -145,7 +150,7 @@ const MainRouter: React.FC = () => {
       {/* Mobile navigation */}
       <MobileBottomBar />
 
-      {/* Overlays and drawers */}
+      {/* Overlays, modals and drawers */}
       <CartDrawer />
       <SearchModal />
       <QuickViewModal />
@@ -153,14 +158,17 @@ const MainRouter: React.FC = () => {
       <FloatingWhatsApp />
       <BackToTop />
       <ToastNotification />
+      <AuthModal />
     </div>
   );
 };
 
 export default function App() {
   return (
-    <StoreProvider>
-      <MainRouter />
-    </StoreProvider>
+    <AuthProvider>
+      <StoreProvider>
+        <MainRouter />
+      </StoreProvider>
+    </AuthProvider>
   );
 }
