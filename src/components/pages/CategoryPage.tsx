@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { CATEGORIES } from '../../data/categories';
-import { PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
 import { ArrowLeft, Tag, Layers, ArrowUpDown } from 'lucide-react';
 
 export const CategoryPage: React.FC = () => {
-  const { routeParams, navigate } = useStore();
+  const { products: allProducts, routeParams, navigate } = useStore();
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('featured');
 
@@ -14,7 +13,7 @@ export const CategoryPage: React.FC = () => {
   const category = CATEGORIES.find((c) => c.slug === slug) || CATEGORIES[0];
 
   // Filter products by category and optional subcategory
-  const products = PRODUCTS.filter((p) => {
+  const products = allProducts.filter((p) => {
     let matchesCategory = false;
     if (slug === 'whey-protein') {
       matchesCategory = p.category === 'Whey Protein';

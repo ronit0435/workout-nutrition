@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { BRANDS } from '../../data/brands';
 import { CATEGORIES } from '../../data/categories';
 import { formatCurrency } from '../../utils/formatters';
@@ -18,7 +17,7 @@ const POPULAR_SEARCHES = [
 ];
 
 export const SearchModal: React.FC = () => {
-  const { searchOpen, setSearchOpen, navigate } = useStore();
+  const { products, searchOpen, setSearchOpen, navigate } = useStore();
   const [query, setQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
@@ -52,7 +51,7 @@ export const SearchModal: React.FC = () => {
 
   // Dynamic filter results
   const matchedProducts = trimmed
-    ? PRODUCTS.filter(
+    ? products.filter(
         (p) =>
           p.name.toLowerCase().includes(trimmed) ||
           p.brand.toLowerCase().includes(trimmed) ||
@@ -325,7 +324,7 @@ export const SearchModal: React.FC = () => {
                     Trending Right Now
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {PRODUCTS.slice(0, 3).map((p) => (
+                    {products.slice(0, 3).map((p) => (
                       <button
                         key={p.id}
                         onClick={() => handleProductClick(p.id)}

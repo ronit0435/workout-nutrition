@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
+import { PRODUCTS as FALLBACK_PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
 import { VegTag } from '../common/VegTag';
 import { formatCurrency } from '../../utils/formatters';
@@ -26,10 +26,11 @@ import {
 } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
-  const { routeParams, addToCart, toggleWishlist, isInWishlist, navigate } = useStore();
+  const { products, routeParams, addToCart, toggleWishlist, isInWishlist, navigate } = useStore();
+  const catalog = products.length > 0 ? products : FALLBACK_PRODUCTS;
 
-  const productId = routeParams.productId || PRODUCTS[0].id;
-  const product = PRODUCTS.find((p) => p.id === productId) || PRODUCTS[0];
+  const productId = routeParams.productId || catalog[0].id;
+  const product = catalog.find((p) => p.id === productId) || catalog[0];
   const isOutOfStock = product.stock === 0;
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -52,7 +53,7 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   // Related products from same category or brand
-  const relatedProducts = PRODUCTS.filter(
+  const relatedProducts = catalog.filter(
     (p) => p.id !== product.id && (p.category === product.category || p.brand === product.brand)
   ).slice(0, 4);
 

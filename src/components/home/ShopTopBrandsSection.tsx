@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { BRANDS } from '../../data/brands';
 import { ArrowRight, Award, ShieldCheck, Sparkles } from 'lucide-react';
 
 export const ShopTopBrandsSection: React.FC = () => {
-  const { navigate } = useStore();
+  const { products, navigate } = useStore();
   const [activeTab, setActiveTab] = useState<'all' | 'usa' | 'india' | 'protein'>('all');
   const [showAllBrands, setShowAllBrands] = useState(false);
 
@@ -14,7 +13,7 @@ export const ShopTopBrandsSection: React.FC = () => {
   };
 
   // Brands that exist in the actual product database
-  const availableBrandNames = Array.from(new Set(PRODUCTS.map((p) => p.brand)));
+  const availableBrandNames = Array.from(new Set(products.map((p) => p.brand)));
   const allExistingBrands = BRANDS.filter((b) => availableBrandNames.includes(b.name));
   const baseBrands = showAllBrands ? allExistingBrands : allExistingBrands.slice(0, 8);
 
@@ -95,7 +94,7 @@ export const ShopTopBrandsSection: React.FC = () => {
         {/* Brand Cards Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4.5">
           {displayedBrands.map((brand) => {
-            const count = PRODUCTS.filter((p) => p.brand === brand.name).length;
+            const count = products.filter((p) => p.brand === brand.name).length;
             return (
               <div
                 key={brand.id}

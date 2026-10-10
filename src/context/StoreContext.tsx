@@ -98,6 +98,19 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 const FREE_SHIPPING_THRESHOLD = 999;
 const STANDARD_SHIPPING_FEE = 99;
 
+const getInitialPageFromUrl = (): PageRoute => {
+  if (typeof window === 'undefined') return 'home';
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  if (path === 'admin' || hash === 'admin') return 'admin';
+  if (path === 'shop' || hash === 'shop') return 'shop';
+  if (path === 'account' || hash === 'account') return 'account';
+  if (path === 'cart' || hash === 'cart') return 'cart';
+  if (path === 'checkout' || hash === 'checkout') return 'checkout';
+  if (path === 'wishlist' || hash === 'wishlist') return 'wishlist';
+  return 'home';
+};
+
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Live Products State
   const [products, setProducts] = useState<Product[]>(STATIC_PRODUCTS);
@@ -115,15 +128,22 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   // Navigation State
-  const [currentPage, setCurrentPage] = useState<PageRoute>('home');
+  const [currentPage, setCurrentPage] = useState<PageRoute>(getInitialPageFromUrl);
   const [routeParams, setRouteParams] = useState<RouteParams>({});
 
   // Keep the browser Back/Forward buttons in sync with this React SPA.
   useEffect(() => {
     const initialState = window.history.state;
+    const urlPage = getInitialPageFromUrl();
 
-    // Register the current page as the starting point for app navigation.
-    if (initialState?.appRoute && initialState.page) {
+    if (urlPage !== 'home') {
+      setCurrentPage(urlPage);
+      window.history.replaceState(
+        { appRoute: true, page: urlPage, params: {} },
+        '',
+        window.location.href
+      );
+    } else if (initialState?.appRoute && initialState.page) {
       setCurrentPage(initialState.page as PageRoute);
       setRouteParams(initialState.params || {});
     } else {
@@ -141,6 +161,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setCurrentPage(state.page as PageRoute);
         setRouteParams(state.params || {});
         window.scrollTo({ top: 0, behavior: 'auto' });
+      } else {
+        setCurrentPage(getInitialPageFromUrl());
       }
     };
 
@@ -269,11 +291,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Navigation Helper
   const navigate = (page: PageRoute, params: RouteParams = {}) => {
-    // Save each in-app navigation so browser Back/Forward restores the page.
+    const newUrl = page === 'home' ? '/' : `/${page}`;
     window.history.pushState(
       { appRoute: true, page, params },
       '',
-      window.location.href
+      newUrl
     );
 
     setCurrentPage(page);

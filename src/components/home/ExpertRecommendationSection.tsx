@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
 import { Sparkles, MessageCircle, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
 
 export const ExpertRecommendationSection: React.FC = () => {
-  const { navigate, addToCart } = useStore();
+  const { products, navigate, addToCart } = useStore();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedGoal, setSelectedGoal] = useState<'build-muscle' | 'lose-fat' | 'increase-strength' | 'general-wellness'>('build-muscle');
@@ -14,7 +13,7 @@ export const ExpertRecommendationSection: React.FC = () => {
 
   // Recommendations calculated based on user inputs
   const getRecommendedProducts = () => {
-    return PRODUCTS.filter((p) => p.goals.includes(selectedGoal)).slice(0, 3);
+    return products.filter((p) => p.goals.includes(selectedGoal)).slice(0, 3);
   };
 
   const handleGetRecommendations = () => {

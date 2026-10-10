@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
 import { Flame, ArrowRight } from 'lucide-react';
 
@@ -13,11 +12,11 @@ const TABS = [
 ];
 
 export const BestSellersSection: React.FC = () => {
-  const { navigate } = useStore();
+  const { products, navigate } = useStore();
   const [activeTab, setActiveTab] = useState('ALL');
 
   // Filter products based on tab
-  const filteredProducts = PRODUCTS.filter((p) => {
+  const filteredProducts = products.filter((p) => {
     if (activeTab === 'ALL') return p.isBestSeller;
     if (activeTab === 'WHEY') return p.category === 'Whey Protein' || p.category === 'Whey Isolate';
     if (activeTab === 'CREATINE') return p.category === 'Creatine';

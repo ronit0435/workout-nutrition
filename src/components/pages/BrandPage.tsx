@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { BRANDS } from '../../data/brands';
-import { PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
 import { ShieldCheck, Award, Globe, ArrowUpDown, ChevronDown } from 'lucide-react';
 
 export const BrandPage: React.FC = () => {
-  const { routeParams, navigate } = useStore();
+  const { products, routeParams, navigate } = useStore();
   const [sortBy, setSortBy] = useState('featured');
 
   const slug = routeParams.brandSlug || 'optimum-nutrition';
@@ -16,7 +15,7 @@ export const BrandPage: React.FC = () => {
   const brand = foundBrand || {
     id: slug,
     name:
-      PRODUCTS.find((p) => p.brand.toLowerCase().replace(/\s+/g, '-') === slug.toLowerCase())?.brand ||
+      products.find((p) => p.brand.toLowerCase().replace(/\s+/g, '-') === slug.toLowerCase())?.brand ||
       slug.replace(/-/g, ' ').toUpperCase(),
     slug,
     origin: 'Authorized Global / Indian',
@@ -27,7 +26,7 @@ export const BrandPage: React.FC = () => {
   };
 
   // Brand's products
-  const brandProducts = PRODUCTS.filter(
+  const brandProducts = products.filter(
     (p) =>
       p.brand.toLowerCase() === brand.name.toLowerCase() ||
       p.brand.toLowerCase().replace(/\s+/g, '-') === slug.toLowerCase()

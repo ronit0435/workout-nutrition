@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useStore } from '../../context/StoreContext';
 import { GOALS } from '../../data/goals';
-import { PRODUCTS } from '../../data/products';
+import { Product } from '../../types';
 import { ProductCard } from '../common/ProductCard';
 import { Target, Lightbulb } from 'lucide-react';
 
@@ -20,7 +19,7 @@ const GOAL_PRODUCT_CATEGORIES: Record<string, string[]> = {
 };
 
 export const GoalPage: React.FC = () => {
-  const { routeParams, navigate } = useStore();
+  const { products, routeParams, navigate } = useStore();
 
   const slug = routeParams.goalSlug || 'build-muscle';
   const goal = GOALS.find((g) => g.slug === slug) || GOALS[0];
@@ -29,7 +28,7 @@ export const GoalPage: React.FC = () => {
     GOAL_PRODUCT_CATEGORIES[goal.slug] || []
   ).map(normalizeCategory);
 
-  const goalProducts = PRODUCTS.filter((product) => {
+  const goalProducts = products.filter((product) => {
     const category = normalizeCategory(product.category);
     const subcategory = normalizeCategory(product.subcategory);
 
@@ -38,7 +37,7 @@ export const GoalPage: React.FC = () => {
       allowedCategories.includes(subcategory)
     );
   }).sort((a, b) => {
-    const getPriority = (product: (typeof PRODUCTS)[number]) => {
+    const getPriority = (product: Product) => {
       const categories = [
         normalizeCategory(product.category),
         normalizeCategory(product.subcategory),

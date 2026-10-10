@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
+import { PRODUCTS as FALLBACK_PRODUCTS } from '../../data/products';
 import { formatCurrency } from '../../utils/formatters';
 import { ArrowRight, ShieldCheck, Zap, Award } from 'lucide-react';
 import heroVisual from '../../assets/images/hero_athlete_training_1791377063699.jpg';
 
 export const HeroSection: React.FC = () => {
-  const { navigate } = useStore();
+  const { products, navigate } = useStore();
+  const catalog = products.length > 0 ? products : FALLBACK_PRODUCTS;
 
   // 3 genuine products representing distinct categories: Whey, Creatine, Pre-Workout
   const showcaseProducts = [
     {
       label: 'Whey Protein',
-      product: PRODUCTS[0], // ON Gold Standard Whey
+      product: catalog.find((p) => p.category === 'Whey Protein') || catalog[0] || FALLBACK_PRODUCTS[0],
     },
     {
       label: 'Creatine',
-      product: PRODUCTS[1], // MuscleTech Platinum Creatine
+      product: catalog.find((p) => p.category === 'Creatine') || catalog[1] || FALLBACK_PRODUCTS[1],
     },
     {
       label: 'Pre-Workout',
-      product: PRODUCTS[4], // Cellucor C4 Pre-Workout
+      product: catalog.find((p) => p.category === 'Pre Workout') || catalog[2] || FALLBACK_PRODUCTS[4],
     },
   ];
 

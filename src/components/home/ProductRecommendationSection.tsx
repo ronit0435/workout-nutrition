@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
 import { Sparkles, MessageCircle, ArrowRight, CheckCircle2, RotateCcw, HelpCircle } from 'lucide-react';
 
 export const ProductRecommendationSection: React.FC = () => {
-  const { addToCart } = useStore();
+  const { products, addToCart } = useStore();
 
   const [selectedGoal, setSelectedGoal] = useState<
     'build-muscle' | 'gain-weight' | 'lose-fat' | 'increase-strength' | 'boost-energy' | 'recovery' | 'health-wellness'
@@ -15,7 +14,7 @@ export const ProductRecommendationSection: React.FC = () => {
 
   // Recommend relevant products dynamically from the actual product catalog
   const getRecommendedProducts = () => {
-    return PRODUCTS.filter((p) => (p.goals as string[]).includes(selectedGoal)).slice(0, 3);
+    return products.filter((p) => (p.goals as string[]).includes(selectedGoal)).slice(0, 3);
   };
 
   const handleGetRecommendations = () => {

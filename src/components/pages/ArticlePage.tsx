@@ -1,7 +1,6 @@
 import React from 'react';
 import { useStore } from '../../context/StoreContext';
 import { ARTICLES } from '../../data/articles';
-import { PRODUCTS } from '../../data/products';
 import { ProductCard } from '../common/ProductCard';
 import {
   BookOpen,
@@ -17,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const ArticlePage: React.FC = () => {
-  const { routeParams, navigate, addToast } = useStore();
+  const { products, routeParams, navigate, addToast } = useStore();
 
   const articleSlug = routeParams.articleSlug;
   // Match either by slug or by id
@@ -27,7 +26,7 @@ export const ArticlePage: React.FC = () => {
 
   // Related products based on article category
   const relatedCategorySlug = article.relatedCategorySlug || 'whey-protein';
-  const relatedProducts = PRODUCTS.filter((p) => {
+  const relatedProducts = products.filter((p) => {
     if (relatedCategorySlug === 'shop') return p.isBestSeller;
     if (relatedCategorySlug === 'whey-protein') return p.category === 'Whey Protein' || p.category === 'Whey Isolate';
     if (relatedCategorySlug === 'creatine') return p.category === 'Creatine';

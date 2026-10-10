@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 interface QuickCat {
@@ -80,7 +79,7 @@ const QUICK_CATEGORIES: QuickCat[] = [
 ];
 
 export const QuickCategoryStrip: React.FC = () => {
-  const { navigate } = useStore();
+  const { products, navigate } = useStore();
 
   const handleCategoryClick = (slug: string) => {
     navigate('category', { categorySlug: slug });
@@ -89,10 +88,10 @@ export const QuickCategoryStrip: React.FC = () => {
   const productCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     QUICK_CATEGORIES.forEach((cat) => {
-      counts[cat.id] = PRODUCTS.filter((p) => cat.matchFn(p.category)).length;
+      counts[cat.id] = products.filter((p) => cat.matchFn(p.category)).length;
     });
     return counts;
-  }, []);
+  }, [products]);
 
   return (
     <section className="py-12 bg-zinc-50 border-b border-zinc-200/80">

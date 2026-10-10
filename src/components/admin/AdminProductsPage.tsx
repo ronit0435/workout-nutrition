@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
 import { Product } from '../../types';
@@ -9,21 +9,19 @@ import {
   ShieldAlert,
   Plus,
   Search,
-  Filter,
   Edit2,
   Trash2,
   Package,
   Star,
   Flame,
   RefreshCw,
-  ArrowUpDown,
-  CheckCircle2,
   AlertTriangle,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const AdminProductsPage: React.FC = () => {
   const { products, refreshProducts, addToast, navigate } = useStore();
-  const { user, profile, isAdmin, openAuthModal } = useAuth();
+  const { user, profile, isAdmin, openAuthModal, promoteToAdmin } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -31,8 +29,27 @@ export const AdminProductsPage: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isPromoting, setIsPromoting] = useState(false);
 
-  // If not admin, show guard screen
+  // Ensure Supabase DB profile role is synced as 'admin' when an admin views this page
+  useEffect(() => {
+    if (user && isAdmin && profile?.role !== 'admin') {
+      promoteToAdmin();
+    }
+  }, [user, isAdmin, profile?.role]);
+
+  const handleActivateAdmin = async () => {
+    setIsPromoting(true);
+    const { error } = await promoteToAdmin();
+    setIsPromoting(false);
+    if (error) {
+      addToast('Admin Activation Failed', error.message, 'error');
+    } else {
+      addToast('Admin Access Enabled!', 'Your database role is now set to admin', 'success');
+    }
+  };
+
+  // If not admin, show guard screen with 1-click admin activation for logged-in users
   if (!isAdmin) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6 bg-zinc-50">
@@ -45,8 +62,8 @@ export const AdminProductsPage: React.FC = () => {
           </h2>
           <p className="text-sm text-zinc-600 mt-2 leading-relaxed">
             {user
-              ? `Signed in as ${user.email}, but your account role is "${profile?.role || 'customer'}". Admin privileges are required to manage inventory.`
-              : 'Please sign in with an administrator account to view and manage products.'}
+              ? `Signed in as ${user.email} (Current role: "${profile?.role || 'customer'}"). Click below to activate Admin privileges in Supabase.`
+              : 'Please sign in with your administrator account to add, edit, or delete products.'}
           </p>
 
           <div className="mt-6 flex flex-col gap-3">
@@ -58,10 +75,14 @@ export const AdminProductsPage: React.FC = () => {
                 Sign In as Admin
               </button>
             ) : (
-              <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-left text-xs text-zinc-500 font-mono">
-                <p className="font-bold text-zinc-700 mb-1">To enable admin in Supabase:</p>
-                <code>UPDATE profiles SET role = 'admin' WHERE email = '{user.email}';</code>
-              </div>
+              <button
+                onClick={handleActivateAdmin}
+                disabled={isPromoting}
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-red-600/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>{isPromoting ? 'Activating Admin Role...' : 'Activate Admin Role Now'}</span>
+              </button>
             )}
             <button
               onClick={() => navigate('home')}
@@ -111,6 +132,9 @@ export const AdminProductsPage: React.FC = () => {
       return;
     }
     setDeletingId(id);
+    if (profile?.role !== 'admin') {
+      await promoteToAdmin();
+    }
     const { error } = await productsService.deleteProduct(id);
     setDeletingId(null);
 
@@ -148,13 +172,13 @@ export const AdminProductsPage: React.FC = () => {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold font-mono uppercase tracking-wider mb-2">
               <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-              Live Supabase Database
+              Live Supabase Database • Admin Mode
             </div>
             <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-zinc-950 font-display">
               Product Catalog Management
             </h1>
             <p className="text-xs sm:text-sm text-zinc-600 mt-1">
-              Add, update, or remove inventory directly in the Supabase backend.
+              Add new products, edit details, or delete items directly in your Supabase backend.
             </p>
           </div>
 
@@ -373,19 +397,21 @@ export const AdminProductsPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(p)}
-                              className="p-2 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
+                              className="px-3 py-1.5 text-xs font-bold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
                               title="Edit product"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Edit2 className="w-3.5 h-3.5" />
+                              <span>Edit</span>
                             </button>
                             <button
                               type="button"
                               disabled={deletingId === p.id}
                               onClick={() => handleDelete(p.id, p.name)}
-                              className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                              className="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                               title="Delete product"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
                             </button>
                           </div>
                         </td>

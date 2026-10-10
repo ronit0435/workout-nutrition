@@ -1,6 +1,5 @@
 import React from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { BRANDS } from '../../data/brands';
 import { ArrowRight, Target, Award } from 'lucide-react';
 
@@ -9,10 +8,10 @@ interface CategoriesMegaMenuProps {
 }
 
 export const CategoriesMegaMenu: React.FC<CategoriesMegaMenuProps> = ({ onClose }) => {
-  const { navigate } = useStore();
+  const { products, navigate } = useStore();
 
   // Dynamically compute brands that actually exist in the products database
-  const availableBrandNames = Array.from(new Set(PRODUCTS.map((p) => p.brand)));
+  const availableBrandNames = Array.from(new Set(products.map((p) => p.brand)));
   const dynamicBrands = BRANDS.filter((b) => availableBrandNames.includes(b.name));
 
   const handleCategoryClick = (categorySlug: string) => {
@@ -215,7 +214,7 @@ export const CategoriesMegaMenu: React.FC<CategoriesMegaMenuProps> = ({ onClose 
               {/* Dynamic Brands List: Strict overflow-x-hidden, smooth vertical scroll, no horizontal scrollbar */}
               <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto overflow-x-hidden pr-1.5">
                 {dynamicBrands.map((brand) => {
-                  const count = PRODUCTS.filter((p) => p.brand === brand.name).length;
+                  const count = products.filter((p) => p.brand === brand.name).length;
                   return (
                     <button
                       key={brand.id}
@@ -247,7 +246,7 @@ export const CategoriesMegaMenu: React.FC<CategoriesMegaMenuProps> = ({ onClose 
                 }}
                 className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1.5 cursor-pointer uppercase tracking-wide group"
               >
-                <span>Browse All {PRODUCTS.length} Products</span>
+                <span>Browse All {products.length} Products</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>

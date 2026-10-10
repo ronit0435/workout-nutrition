@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { PRODUCTS } from '../../data/products';
 import { BRANDS } from '../../data/brands';
 import { ProductCard } from '../common/ProductCard';
 import { formatCurrency } from '../../utils/formatters';
 import { Filter, X, ChevronDown, Check, SlidersHorizontal, ArrowUpDown, Star } from 'lucide-react';
 
 export const ShopPage: React.FC = () => {
-  const { routeParams, navigate } = useStore();
+  const { products, routeParams, navigate } = useStore();
 
   // Filters State
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -101,7 +100,7 @@ export const ShopPage: React.FC = () => {
 
   // Filter and Sort Processing
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((product) => {
+    return products.filter((product) => {
       // Search query filter
       if (routeParams.searchQuery) {
         const q = routeParams.searchQuery.toLowerCase();
@@ -163,6 +162,7 @@ export const ShopPage: React.FC = () => {
       return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
     });
   }, [
+    products,
     selectedCategories,
     selectedBrands,
     selectedPriceRanges,

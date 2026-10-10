@@ -7,17 +7,16 @@ import {
   Package,
   MapPin,
   Heart,
-  ShieldCheck,
   LogOut,
-  Clock,
   ArrowRight,
   ShieldAlert,
   LogIn,
+  Plus,
 } from 'lucide-react';
 
 export const AccountPage: React.FC = () => {
-  const { orders, wishlist, navigate } = useStore();
-  const { user, profile, isAdmin, openAuthModal, signOut } = useAuth();
+  const { orders, wishlist, navigate, addToast } = useStore();
+  const { user, profile, isAdmin, openAuthModal, signOut, promoteToAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'addresses'>('orders');
 
   // If not logged in, prompt user to sign in
@@ -32,7 +31,7 @@ export const AccountPage: React.FC = () => {
             Account Sign In
           </h2>
           <p className="text-xs sm:text-sm text-zinc-500 mt-2 mb-6">
-            Sign in to view your orders, live shipments, saved addresses, and account details.
+            Sign in to view your orders, live shipments, saved addresses, and admin controls.
           </p>
 
           <div className="flex flex-col gap-3">
@@ -62,6 +61,18 @@ export const AccountPage: React.FC = () => {
     .join('')
     .substring(0, 2)
     .toUpperCase();
+
+  const handleOpenAdminPortal = async () => {
+    if (!isAdmin) {
+      const { error } = await promoteToAdmin();
+      if (error) {
+        addToast('Error', error.message, 'error');
+        return;
+      }
+      addToast('Admin Enabled', 'Your account is now an Administrator', 'success');
+    }
+    navigate('admin');
+  };
 
   return (
     <div className="bg-zinc-50 min-h-screen py-10">
@@ -102,16 +113,14 @@ export const AccountPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {isAdmin && (
-              <button
-                onClick={() => navigate('admin')}
-                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-md shadow-red-600/20"
-              >
-                <ShieldAlert className="w-4 h-4" />
-                <span>Admin Inventory Portal</span>
-              </button>
-            )}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleOpenAdminPortal}
+              className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-md shadow-red-600/20"
+            >
+              <ShieldAlert className="w-4 h-4" />
+              <span>{isAdmin ? 'Admin Portal (Add / Delete Products)' : 'Enable Admin & Manage Products'}</span>
+            </button>
             <button
               onClick={() => navigate('track-order')}
               className="bg-zinc-900 hover:bg-black text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -128,10 +137,21 @@ export const AccountPage: React.FC = () => {
           <div className="lg:col-span-3">
             <div className="bg-white border border-zinc-200/80 rounded-2xl p-3 shadow-sm space-y-1">
               <button
+                onClick={handleOpenAdminPortal}
+                className="w-full text-left p-3 rounded-xl text-xs font-bold bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-between transition-colors cursor-pointer mb-1 border border-red-200/80"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Plus className="w-4 h-4" />
+                  <span>Manage Products (Admin)</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
                 onClick={() => setActiveTab('orders')}
                 className={`w-full text-left p-3 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
                   activeTab === 'orders'
-                    ? 'bg-red-50 text-red-600'
+                    ? 'bg-zinc-900 text-white'
                     : 'text-zinc-700 hover:bg-zinc-50'
                 }`}
               >
@@ -146,7 +166,7 @@ export const AccountPage: React.FC = () => {
                 onClick={() => setActiveTab('profile')}
                 className={`w-full text-left p-3 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
                   activeTab === 'profile'
-                    ? 'bg-red-50 text-red-600'
+                    ? 'bg-zinc-900 text-white'
                     : 'text-zinc-700 hover:bg-zinc-50'
                 }`}
               >
@@ -161,7 +181,7 @@ export const AccountPage: React.FC = () => {
                 onClick={() => setActiveTab('addresses')}
                 className={`w-full text-left p-3 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
                   activeTab === 'addresses'
-                    ? 'bg-red-50 text-red-600'
+                    ? 'bg-zinc-900 text-white'
                     : 'text-zinc-700 hover:bg-zinc-50'
                 }`}
               >
@@ -293,7 +313,7 @@ export const AccountPage: React.FC = () => {
                     <input
                       type="text"
                       readOnly
-                      value={profile?.role?.toUpperCase() || 'CUSTOMER'}
+                      value={isAdmin ? 'ADMIN' : (profile?.role?.toUpperCase() || 'CUSTOMER')}
                       className="w-full bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl font-medium font-mono"
                     />
                   </div>
